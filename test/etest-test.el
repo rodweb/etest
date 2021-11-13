@@ -16,3 +16,7 @@
   "Should return project type if guessed, nil otherwise."
   (let ((default-directory (concat test-file-location "fixtures/npm/mocha/")))
     (should (equal (etest--guess-project-type) 'npm))))
+
+(ert-deftest etest-guess-test-runner ()
+  (let ((default-directory (concat test-file-location "fixtures/npm/jest")))
+    (should (equal (etest--guess-project-runner) 'jest))))
