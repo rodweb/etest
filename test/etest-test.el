@@ -11,3 +11,8 @@
     (should (equal (etest--npm-has-package "jest") "1.0.0")))
   (let ((default-directory (concat test-file-location "fixtures/npm/empty/")))
     (should (equal (etest--npm-has-package "jest") nil))))
+
+(ert-deftest etest-guess-project-type ()
+  "Should return project type if guessed, nil otherwise."
+  (let ((default-directory (concat test-file-location "fixtures/npm/mocha/")))
+    (should (equal (etest--guess-project-type) 'npm))))

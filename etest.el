@@ -8,4 +8,8 @@
     (or (and dependencies (gethash package dependencies))
         (and devDependencies (gethash package devDependencies)))))
 
+(defun etest--guess-project-type ()
+  (require 'projectile)
+  (projectile-project-type))
+
 (provide 'etest)
