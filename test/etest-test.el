@@ -6,7 +6,7 @@
 (ert-deftest etest-npm-has-package ()
   "Should return PACKAGE version if found, nil otherwise."
   (let ((default-directory (concat test-file-location "fixtures/npm/mocha/")))
-    (should (equal (etest--npm-has-package "mocha") "1.0.0")))
+    (should (equal (etest--npm-has-package "mocha") "^9.1.3")))
   (let ((default-directory (concat test-file-location "fixtures/npm/jest/")))
     (should (equal (etest--npm-has-package "jest") "1.0.0")))
   (let ((default-directory (concat test-file-location "fixtures/npm/empty/")))
@@ -20,3 +20,10 @@
 (ert-deftest etest-guess-test-runner ()
   (let ((default-directory (concat test-file-location "fixtures/npm/jest")))
     (should (equal (etest--guess-project-runner) 'jest))))
+
+(ert-deftest etest-mocha-test-file ()
+  (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
+        (filename (concat default-directory "test/test.js")))
+    (with-current-buffer (find-file filename)
+      (should (equal (etest--mocha-test-file filename)
+                     `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))))

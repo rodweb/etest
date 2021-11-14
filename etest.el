@@ -1,3 +1,4 @@
+(require 'compile)
 (require 'projectile)
 
 (defun etest--npm-has-package (package)
@@ -32,10 +33,22 @@
                 (etest--call-if-bound runner "check"))
               runners)))
 
-(defun etest--call-if-bound (runner fn)
+(defun etest--call-if-bound (runner fn &rest args)
   (let ((fn (intern (concat "etest--" (symbol-name runner) "-" fn))))
     (if (fboundp fn)
-        (funcall fn)
-      (error "%s not supported for runner %s" runner fn))))
+        (apply fn args)
+      (error "%s not supported for runner %s" fn runner))))
+
+(defun etest--mocha-test-file (filename)
+  (let ((program "node_modules/.bin/mocha"))
+    (list program "--reporter=dot" filename)))
+
+(defun etest-file ()
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (runner (etest--guess-project-runner))
+         (filename (buffer-file-name))
+         (command (etest--call-if-bound runner "test-file" filename)))
+    (compile (mapconcat #'identity command " "))))
 
 (provide 'etest)
