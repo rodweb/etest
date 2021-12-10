@@ -40,8 +40,13 @@
         (apply fn args)
       (error "%s not supported for runner %s" fn runner))))
 
-(defun etest--mocha-test-file (filename)
+(defun etest--mocha-test-project ()
   (let ((program "node_modules/.bin/mocha"))
+    (list program "--reporter=dot")))
+
+(defun etest--mocha-test-file ()
+  (let ((program "node_modules/.bin/mocha")
+        (filename (buffer-file-name)))
     (list program "--reporter=dot" filename)))
 
 (defcustom etest-mocha-identifiers '("describe" "it")
@@ -60,19 +65,23 @@
          (node (etest--mocha-walk-up node)))
     (substring (tsc-node-text node) 1 -1)))
 
-(defun etest--mocha-test-dwim (filename)
+(defun etest--mocha-test-dwim ()
   (let* ((program "node_modules/.bin/mocha")
+         (filename (buffer-file-name))
          (name (etest--mocha-get-test-name)))
     (if (not name)
-        (etest--mocha-test-file filename)
+        (etest--mocha-test-file)
       (list program "--reporter=dot" filename "--fgrep" (concat "'" name "'")))))
 
 (defun etest--run (action)
   (let* ((default-directory (projectile-project-root))
          (runner (etest--guess-project-runner))
-         (filename (buffer-file-name))
-         (command (etest--call-if-bound runner action filename)))
+         (command (etest--call-if-bound runner action)))
     (compile (mapconcat #'identity command " "))))
+
+(defun etest-project ()
+  (interactive)
+  (etest--run "test-project"))
 
 (defun etest-file ()
   (interactive)

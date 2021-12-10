@@ -21,11 +21,18 @@
   (let ((default-directory (concat test-file-location "fixtures/npm/jest")))
     (should (equal (etest--guess-project-runner) 'jest))))
 
+(ert-deftest etest-mocha-test-project ()
+  (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
+        (filename (concat default-directory "test/test.js")))
+    (with-current-buffer (find-file filename)
+      (should (equal (etest--mocha-test-project)
+                     `("node_modules/.bin/mocha" "--reporter=dot"))))))
+
 (ert-deftest etest-mocha-test-file ()
   (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
         (filename (concat default-directory "test/test.js")))
     (with-current-buffer (find-file filename)
-      (should (equal (etest--mocha-test-file filename)
+      (should (equal (etest--mocha-test-file)
                      `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))))
 
 (ert-deftest etest-mocha-test-dwim ()
@@ -34,16 +41,16 @@
     (with-current-buffer (find-file filename)
       (save-excursion
         (goto-char (point-min))
-        (should (equal (etest--mocha-test-dwim filename)
+        (should (equal (etest--mocha-test-dwim)
                        `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'one'"))))
 
       (save-excursion
         (goto-char (point-max))
-        (should (equal (etest--mocha-test-dwim filename)
+        (should (equal (etest--mocha-test-dwim)
                        `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))
 
       (save-excursion
         (goto-char (point-min))
         (search-forward "two")
-        (should (equal (etest--mocha-test-dwim filename)
+        (should (equal (etest--mocha-test-dwim)
                        `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'two'")))))))
