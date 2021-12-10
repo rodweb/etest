@@ -1,5 +1,6 @@
 (require 'compile)
 (require 'projectile)
+(require 'tree-sitter)
 
 (defun etest--npm-has-package (package)
   "Returns PACKAGE version if found, nil otherwise."
@@ -43,12 +44,43 @@
   (let ((program "node_modules/.bin/mocha"))
     (list program "--reporter=dot" filename)))
 
+(defcustom etest-mocha-identifiers '("describe" "it")
+  "Mocha's test identifiers."
+  :type '(repeat string))
+
+(defun etest--mocha-walk-up (node)
+  (if-let ((identifier (and node (tsc-get-nth-named-child node 0))))
+      (if (and (eq (tsc-node-type identifier) 'identifier)
+               (member (tsc-node-text identifier) etest-mocha-identifiers))
+          (tsc-get-nth-named-child (tsc-get-nth-named-child node 1) 0)
+        (etest--walk-up (tsc-get-parent node)))))
+
+(defun etest--mocha-get-test-name ()
+  (if-let* ((node (tree-sitter-node-at-pos 'call_expression))
+         (node (etest--mocha-walk-up node)))
+    (substring (tsc-node-text node) 1 -1)))
+
+(defun etest--mocha-test-dwim (filename)
+  (let* ((program "node_modules/.bin/mocha")
+         (name (etest--mocha-get-test-name)))
+    (if (not name)
+        (etest--mocha-test-file filename)
+      (list program "--reporter=dot" filename "--fgrep" (concat "'" name "'")))))
+
 (defun etest-file ()
   (interactive)
   (let* ((default-directory (projectile-project-root))
          (runner (etest--guess-project-runner))
          (filename (buffer-file-name))
          (command (etest--call-if-bound runner "test-file" filename)))
+    (compile (mapconcat #'identity command " "))))
+
+(defun etest-dwim ()
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (runner (etest--guess-project-runner))
+         (filename (buffer-file-name))
+         (command (etest--call-if-bound runner "test-dwim" filename)))
     (compile (mapconcat #'identity command " "))))
 
 (provide 'etest)

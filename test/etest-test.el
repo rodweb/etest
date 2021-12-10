@@ -27,3 +27,23 @@
     (with-current-buffer (find-file filename)
       (should (equal (etest--mocha-test-file filename)
                      `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))))
+
+(ert-deftest etest-mocha-test-dwim ()
+  (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
+         (filename (concat default-directory "test/test.js")))
+    (with-current-buffer (find-file filename)
+      (save-excursion
+        (goto-char (point-min))
+        (should (equal (etest--mocha-test-dwim filename)
+                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'one'"))))
+
+      (save-excursion
+        (goto-char (point-max))
+        (should (equal (etest--mocha-test-dwim filename)
+                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))
+
+      (save-excursion
+        (goto-char (point-min))
+        (search-forward "two")
+        (should (equal (etest--mocha-test-dwim filename)
+                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'two'")))))))
