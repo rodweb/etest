@@ -67,20 +67,19 @@
         (etest--mocha-test-file filename)
       (list program "--reporter=dot" filename "--fgrep" (concat "'" name "'")))))
 
-(defun etest-file ()
-  (interactive)
+(defun etest--run (action)
   (let* ((default-directory (projectile-project-root))
          (runner (etest--guess-project-runner))
          (filename (buffer-file-name))
-         (command (etest--call-if-bound runner "test-file" filename)))
+         (command (etest--call-if-bound runner action filename)))
     (compile (mapconcat #'identity command " "))))
+
+(defun etest-file ()
+  (interactive)
+  (etest--run "test-file"))
 
 (defun etest-dwim ()
   (interactive)
-  (let* ((default-directory (projectile-project-root))
-         (runner (etest--guess-project-runner))
-         (filename (buffer-file-name))
-         (command (etest--call-if-bound runner "test-dwim" filename)))
-    (compile (mapconcat #'identity command " "))))
+  (etest--run "test-dwim"))
 
 (provide 'etest)
