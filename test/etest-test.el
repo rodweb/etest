@@ -25,15 +25,15 @@
   (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
         (filename (concat default-directory "test/test.js")))
     (with-current-buffer (find-file filename)
-      (should (equal (etest--mocha-test-project)
-                     `("node_modules/.bin/mocha" "--reporter=dot"))))))
+      (should (equal (etest--mocha-command-args)
+                     `("node_modules/.bin/mocha"))))))
 
 (ert-deftest etest-mocha-test-file ()
   (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
         (filename (concat default-directory "test/test.js")))
     (with-current-buffer (find-file filename)
-      (should (equal (etest--mocha-test-file)
-                     `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))))
+      (should (equal (etest--mocha-command-args :file t)
+                     `("node_modules/.bin/mocha" ,filename))))))
 
 (ert-deftest etest-mocha-test-dwim ()
   (let* ((default-directory (concat test-file-location "fixtures/npm/mocha/"))
@@ -41,16 +41,16 @@
     (with-current-buffer (find-file filename)
       (save-excursion
         (goto-char (point-min))
-        (should (equal (etest--mocha-test-dwim)
-                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'one'"))))
+        (should (equal (etest--mocha-command-args :dwim t)
+                       `("node_modules/.bin/mocha" ,filename "--fgrep='one'"))))
 
       (save-excursion
         (goto-char (point-max))
-        (should (equal (etest--mocha-test-dwim)
-                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename))))
+        (should (equal (etest--mocha-command-args :dwim t)
+                       `("node_modules/.bin/mocha" ,filename))))
 
       (save-excursion
         (goto-char (point-min))
         (search-forward "two")
-        (should (equal (etest--mocha-test-dwim)
-                       `("node_modules/.bin/mocha" "--reporter=dot" ,filename "--fgrep" "'two'")))))))
+        (should (equal (etest--mocha-command-args :dwim t)
+                       `("node_modules/.bin/mocha" ,filename "--fgrep='two'")))))))

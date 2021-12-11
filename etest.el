@@ -34,20 +34,35 @@
                 (etest--call-if-bound runner "check"))
               runners)))
 
-(defun etest--call-if-bound (runner fn &rest args)
+(defun etest--call-if-bound (runner fn &optional args)
   (let ((fn (intern (concat "etest--" (symbol-name runner) "-" fn))))
     (if (fboundp fn)
         (apply fn args)
       (error "%s not supported for runner %s" fn runner))))
 
-(defun etest--mocha-test-project ()
-  (let ((program "node_modules/.bin/mocha"))
-    (list program "--reporter=dot")))
+(defun etest--remove-nil (items)
+  (seq-remove #'not items))
 
-(defun etest--mocha-test-file ()
-  (let ((program "node_modules/.bin/mocha")
-        (filename (buffer-file-name)))
-    (list program "--reporter=dot" filename)))
+(defcustom etest-mocha-program "node_modules/.bin/mocha"
+  "Mocha's program path.")
+
+(defcustom etest-mocha-reporter nil
+  "Mocha's reporter."
+  :type 'string)
+
+(defun etest--current-filename ()
+  (buffer-file-name))
+
+(defun etest--mocha-command-args (&rest args)
+  (etest--remove-nil
+   (list etest-mocha-program
+         (and etest-mocha-reporter
+              (format "--reporter=%s" etest-mocha-reporter))
+         (and (or (plist-get args :file) (plist-get args :dwim))
+              (etest--current-filename))
+         (and (plist-get args :dwim)
+              (if-let ((name (etest--mocha-get-test-name)))
+                  (format "--fgrep='%s'" name))))))
 
 (defcustom etest-mocha-identifiers '("describe" "it")
   "Mocha's test identifiers."
@@ -65,30 +80,22 @@
          (node (etest--mocha-walk-up node)))
     (substring (tsc-node-text node) 1 -1)))
 
-(defun etest--mocha-test-dwim ()
-  (let* ((program "node_modules/.bin/mocha")
-         (filename (buffer-file-name))
-         (name (etest--mocha-get-test-name)))
-    (if (not name)
-        (etest--mocha-test-file)
-      (list program "--reporter=dot" filename "--fgrep" (concat "'" name "'")))))
-
-(defun etest--run (action)
+(defun etest--run (&rest args)
   (let* ((default-directory (projectile-project-root))
          (runner (etest--guess-project-runner))
-         (command (etest--call-if-bound runner action)))
+         (command (etest--call-if-bound runner "command-args" args)))
     (compile (mapconcat #'identity command " "))))
 
 (defun etest-project ()
   (interactive)
-  (etest--run "test-project"))
+  (etest--run))
 
 (defun etest-file ()
   (interactive)
-  (etest--run "test-file"))
+  (etest--run :file t))
 
 (defun etest-dwim ()
   (interactive)
-  (etest--run "test-dwim"))
+  (etest--run :dwim t))
 
 (provide 'etest)
