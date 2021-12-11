@@ -73,6 +73,7 @@
     (define-key map (kbd "t") #'rgr-dwim)
     map)
   "Keymap for `rgr-mode' commands.")
+(fset 'rgr-command-map rgr-command-map)
 
 (defvar rgr-mode-map
   (let ((map (make-sparse-keymap)))
