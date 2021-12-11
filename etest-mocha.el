@@ -18,7 +18,7 @@
       (if (and (eq (tsc-node-type identifier) 'identifier)
                (member (tsc-node-text identifier) etest-mocha-identifiers))
           (tsc-get-nth-named-child (tsc-get-nth-named-child node 1) 0)
-        (etest--walk-up (tsc-get-parent node)))))
+        (etest--mocha-walk-up (tsc-get-parent node)))))
 
 (defun etest--mocha-get-test-name ()
   (if-let* ((node (tree-sitter-node-at-pos 'call_expression))
