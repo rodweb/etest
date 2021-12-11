@@ -1,6 +1,10 @@
 (defcustom rgr-mocha-program "node_modules/.bin/mocha"
   "Mocha's program path.")
 
+(defcustom rgr-mocha-env nil
+  "Mocha's environment variables."
+  :type 'string)
+
 (defcustom rgr-mocha-reporter nil
   "Mocha's reporter."
   :type 'string)
@@ -27,7 +31,8 @@
 
 (defun rgr--mocha-command-args (&rest args)
   (rgr--remove-nil
-   (list rgr-mocha-program
+   (list rgr-mocha-env
+         rgr-mocha-program
          (and rgr-mocha-reporter
               (format "--reporter=%s" rgr-mocha-reporter))
          (and (or (plist-get args :file) (plist-get args :dwim))
