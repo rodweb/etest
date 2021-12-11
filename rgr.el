@@ -58,4 +58,26 @@
   (interactive)
   (rgr--run :dwim t))
 
+(defcustom rgr-command-prefix "C-c t"
+  "Command prefix for `rgr-mode'."
+  :group 'rgr-mode)
+
+(defvar rgr-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "p") #'rgr-project)
+    (define-key map (kbd "f") #'rgr-file)
+    (define-key map (kbd "t") #'rgr-dwim)
+    map)
+  "Keymap for `rgr-mode' commands.")
+
+(defvar rgr-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd rgr-command-prefix) rgr-command-map)
+    map)
+  "Keymap for `rgr-mode'.")
+
+(define-minor-mode rgr-mode
+  "An Emacs minor-mode for running tests."
+  :lighter "rgr")
+
 (provide 'rgr)
