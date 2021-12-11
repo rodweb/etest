@@ -1,0 +1,2 @@
+* rgr.el - red-green-refactor
+An Emacs minor mode for running tests.
