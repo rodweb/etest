@@ -1,39 +1,39 @@
-(defcustom etest-mocha-program "node_modules/.bin/mocha"
+(defcustom rgr-mocha-program "node_modules/.bin/mocha"
   "Mocha's program path.")
 
-(defcustom etest-mocha-reporter nil
+(defcustom rgr-mocha-reporter nil
   "Mocha's reporter."
   :type 'string)
 
-(defcustom etest-mocha-identifiers '("describe" "it")
+(defcustom rgr-mocha-identifiers '("describe" "it")
   "Mocha's test identifiers."
   :type '(repeat string))
 
-(defun etest--mocha-check ()
+(defun rgr--mocha-check ()
   (let ((default-directory (projectile-project-root)))
-    (etest--npm-has-package "mocha")))
+    (rgr--npm-has-package "mocha")))
 
-(defun etest--mocha-walk-up (node)
+(defun rgr--mocha-walk-up (node)
   (if-let ((identifier (and node (tsc-get-nth-named-child node 0))))
       (if (and (eq (tsc-node-type identifier) 'identifier)
-               (member (tsc-node-text identifier) etest-mocha-identifiers))
+               (member (tsc-node-text identifier) rgr-mocha-identifiers))
           (tsc-get-nth-named-child (tsc-get-nth-named-child node 1) 0)
-        (etest--mocha-walk-up (tsc-get-parent node)))))
+        (rgr--mocha-walk-up (tsc-get-parent node)))))
 
-(defun etest--mocha-get-test-name ()
+(defun rgr--mocha-get-test-name ()
   (if-let* ((node (tree-sitter-node-at-pos 'call_expression))
-         (node (etest--mocha-walk-up node)))
+         (node (rgr--mocha-walk-up node)))
     (substring (tsc-node-text node) 1 -1)))
 
-(defun etest--mocha-command-args (&rest args)
-  (etest--remove-nil
-   (list etest-mocha-program
-         (and etest-mocha-reporter
-              (format "--reporter=%s" etest-mocha-reporter))
+(defun rgr--mocha-command-args (&rest args)
+  (rgr--remove-nil
+   (list rgr-mocha-program
+         (and rgr-mocha-reporter
+              (format "--reporter=%s" rgr-mocha-reporter))
          (and (or (plist-get args :file) (plist-get args :dwim))
-              (etest--current-filename))
+              (rgr--current-filename))
          (and (plist-get args :dwim)
-              (if-let ((name (etest--mocha-get-test-name)))
+              (if-let ((name (rgr--mocha-get-test-name)))
                   (format "--fgrep='%s'" name))))))
 
-(provide 'etest-mocha)
+(provide 'rgr-mocha)

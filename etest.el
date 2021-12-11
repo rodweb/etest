@@ -1,10 +1,10 @@
 (require 'compile)
 (require 'projectile)
 (require 'tree-sitter)
-(require 'etest-mocha)
-(require 'etest-jest)
+(require 'rgr-mocha)
+(require 'rgr-jest)
 
-(defun etest--npm-has-package (package)
+(defun rgr--npm-has-package (package)
   "Returns PACKAGE version if found, nil otherwise."
   (let* ((json-hash (with-temp-buffer
                       (insert-file-contents "package.json")
@@ -14,48 +14,48 @@
     (or (and dependencies (gethash package dependencies))
         (and devDependencies (gethash package devDependencies)))))
 
-(defun etest--guess-project-type ()
+(defun rgr--guess-project-type ()
   (projectile-project-type))
 
-(defvar etest--test-runners
+(defvar rgr--test-runners
   '((npm . (mocha jest)))
   "Test runners.")
 
-(defun etest--guess-project-runner ()
+(defun rgr--guess-project-runner ()
   (let* ((project-type (projectile-project-type))
-         (runners (alist-get project-type etest--test-runners)))
+         (runners (alist-get project-type rgr--test-runners)))
     (seq-find (lambda (runner)
-                (etest--call-if-bound runner "check"))
+                (rgr--call-if-bound runner "check"))
               runners)))
 
-(defun etest--call-if-bound (runner fn &optional args)
-  (let ((fn (intern (concat "etest--" (symbol-name runner) "-" fn))))
+(defun rgr--call-if-bound (runner fn &optional args)
+  (let ((fn (intern (concat "rgr--" (symbol-name runner) "-" fn))))
     (if (fboundp fn)
         (apply fn args)
       (error "%s not supported for runner %s" fn runner))))
 
-(defun etest--remove-nil (items)
+(defun rgr--remove-nil (items)
   (seq-remove #'not items))
 
-(defun etest--current-filename ()
+(defun rgr--current-filename ()
   (buffer-file-name))
 
-(defun etest--run (&rest args)
+(defun rgr--run (&rest args)
   (let* ((default-directory (projectile-project-root))
-         (runner (etest--guess-project-runner))
-         (command (etest--call-if-bound runner "command-args" args)))
+         (runner (rgr--guess-project-runner))
+         (command (rgr--call-if-bound runner "command-args" args)))
     (compile (mapconcat #'identity command " "))))
 
-(defun etest-project ()
+(defun rgr-project ()
   (interactive)
-  (etest--run))
+  (rgr--run))
 
-(defun etest-file ()
+(defun rgr-file ()
   (interactive)
-  (etest--run :file t))
+  (rgr--run :file t))
 
-(defun etest-dwim ()
+(defun rgr-dwim ()
   (interactive)
-  (etest--run :dwim t))
+  (rgr--run :dwim t))
 
-(provide 'etest)
+(provide 'rgr)

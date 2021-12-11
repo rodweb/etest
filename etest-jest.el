@@ -1,5 +1,5 @@
-(defun etest--jest-check ()
+(defun rgr--jest-check ()
   (let ((default-directory (projectile-project-root)))
-    (etest--npm-has-package "jest")))
+    (rgr--npm-has-package "jest")))
 
-(provide 'etest-jest)
+(provide 'rgr-jest)
