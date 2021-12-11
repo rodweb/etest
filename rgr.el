@@ -41,7 +41,7 @@
   (buffer-file-name))
 
 (defun rgr--run (&rest args)
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (funcall rgr-project-root-function))
          (runner (rgr--guess-project-runner))
          (command (rgr--call-if-bound runner "command-args" args)))
     (compile (mapconcat #'identity command " "))))
@@ -57,6 +57,10 @@
 (defun rgr-dwim ()
   (interactive)
   (rgr--run :dwim t))
+
+(defcustom rgr-project-root-function #'projectile-project-root
+  "Function to query for the project root."
+  :group 'rgr-mode)
 
 (defcustom rgr-command-prefix "C-c t"
   "Command prefix for `rgr-mode'."
