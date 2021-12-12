@@ -1,3 +1,13 @@
+;;; rgr.el --- An Emacs minor mode for running tests.
+
+;; Author: Rodrigo Campos
+;; Version: 0.1
+;; Package-Requires: ((emacs "28.0") (projectile "2.6"))
+;; Keywords: testing, tdd
+;; URL: https://github.com/rodweb/rgr.el
+
+;;; Commentary:
+;;; Code:
 (require 'compile)
 (require 'projectile)
 (require 'tree-sitter)
@@ -5,7 +15,7 @@
 (require 'rgr-jest)
 
 (defun rgr--npm-has-package (package)
-  "Returns PACKAGE version if found, nil otherwise."
+  "Return PACKAGE version if found, nil otherwise."
   (let* ((json-hash (with-temp-buffer
                       (insert-file-contents "package.json")
                       (json-parse-buffer)))
@@ -15,46 +25,55 @@
         (and devDependencies (gethash package devDependencies)))))
 
 (defun rgr--guess-project-type ()
+  "Guess project type."
   (projectile-project-type))
 
 (defvar rgr--test-runners
   '((npm . (mocha jest)))
-  "Test runners.")
+  "Supported test runners by project types.")
 
 (defun rgr--guess-project-runner ()
-  (let* ((project-type (projectile-project-type))
+  "Guess project runner based on project type."
+  (let* ((project-type (rgr--guess-project-type))
          (runners (alist-get project-type rgr--test-runners)))
     (seq-find (lambda (runner)
                 (rgr--call-if-bound runner "check"))
               runners)))
 
 (defun rgr--call-if-bound (runner fn &optional args)
+  "If there is a function in the form of rgr-- RUNNER - FN, call it with ARGS."
   (let ((fn (intern (concat "rgr--" (symbol-name runner) "-" fn))))
     (if (fboundp fn)
         (apply fn args)
       (error "%s not supported for runner %s" fn runner))))
 
 (defun rgr--remove-nil (items)
+  "Return a new sequence with nil elements removed from ITEMS."
   (seq-remove #'not items))
 
 (defun rgr--current-filename ()
+  "Return the current filename."
   (buffer-file-name))
 
 (defun rgr--run (&rest args)
+  "Run test runner's command-args function with the given ARGS."
   (let* ((default-directory (funcall rgr-project-root-function))
          (runner (rgr--guess-project-runner))
          (command (rgr--call-if-bound runner "command-args" args)))
     (compile (mapconcat #'identity command " "))))
 
 (defun rgr-project ()
+  "Run project tests."
   (interactive)
   (rgr--run))
 
 (defun rgr-file ()
+  "Run file tests."
   (interactive)
   (rgr--run :file t))
 
 (defun rgr-dwim ()
+  "Run test at point."
   (interactive)
   (rgr--run :dwim t))
 
@@ -86,3 +105,4 @@
   :lighter "rgr")
 
 (provide 'rgr)
+;;; rgr.el ends here
