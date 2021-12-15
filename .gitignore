@@ -1,2 +1,4 @@
 /test/fixtures/npm/mocha/node_modules/
 /test/fixtures/npm/mocha/package-lock.json
+/test/fixtures/npm/jest/node_modules/
+/test/fixtures/npm/jest/package-lock.json
