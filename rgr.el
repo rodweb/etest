@@ -13,6 +13,7 @@
 (require 'tree-sitter)
 (require 'rgr-mocha)
 (require 'rgr-jest)
+(require 'rgr-go)
 
 (defun rgr--npm-has-package (package)
   "Return PACKAGE version if found, nil otherwise."
@@ -29,7 +30,8 @@
   (projectile-project-type))
 
 (defvar rgr--test-runners
-  '((npm . (mocha jest)))
+  '((npm . (mocha jest))
+    (generic . (go)))
   "Supported test runners by project types.")
 
 (defun rgr--guess-project-runner ()
