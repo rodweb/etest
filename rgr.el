@@ -31,7 +31,7 @@
 
 (defvar rgr--test-runners
   '((npm . (mocha jest))
-    (generic . (go)))
+    (go . (go)))
   "Supported test runners by project types.")
 
 (defun rgr--guess-project-runner ()
